@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <arpa/inet.h>
-#include "state_machine.h"
+#include "librfb.h"
 
 #define WIDTH 320
 #define HEIGHT 240

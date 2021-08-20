@@ -1,5 +1,5 @@
-#ifndef STATE_MACHINE_H
-#define STATE_MACHINE_H
+#ifndef LBRFB_H
+#define LIBRFB_H
 
 /* https://datatracker.ietf.org/doc/html/rfc6143 */
 

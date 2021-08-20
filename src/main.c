@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include "state_machine.h"
+#include "librfb.h"
 
 const uint16_t port = 5900;
 
