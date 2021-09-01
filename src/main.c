@@ -7,18 +7,54 @@
 #include <netdb.h>
 #include "librfb.h"
 
-const uint16_t port = 5900;
-int sock;
+static const uint16_t w = 320, h = 240;
+static const uint16_t port = 5900;
+static int sock;
+static uint16_t mouse_x = 0, mouse_y = 0;
 
-void error(const char *msg)
+static void send_frame();
+
+static void error(const char *msg)
 {
     perror(msg);
     exit(1);
 }
 
-ssize_t send_callback(const void *data, size_t count)
+static ssize_t send_callback(const void *data, size_t count)
 {
     return write(sock, data, count);
+}
+
+static void mouse_callback(uint16_t x, uint16_t y, uint8_t button_mask)
+{
+    mouse_x = x;
+    mouse_y = y;
+    if(button_mask)
+        printf("click at %d, %d\n", x, y);
+    send_frame();
+}
+
+static void frame_request_callback(uint16_t xpos, uint16_t ypos, uint16_t w, uint16_t h)
+{
+    send_frame();
+}
+
+static void send_frame()
+{
+    uint32_t buffer[w];
+    const uint32_t 
+        green = LIBRFB_RGBA(0, 255, 0, 0), 
+        black = LIBRFB_RGBA(0, 0, 0, 0);
+    librfb_send_frame_header(0, 0, w, h);
+    for(uint16_t y = 0; y < h; y++) {
+        for(uint16_t x = 0; x < w; x++) {
+            if(y < mouse_y)
+                buffer[x] = green;
+            else
+                buffer[x] = black;
+        }
+        send_callback(buffer, sizeof(buffer));
+    }
 }
 
 int main(int argc, char *argv[])
@@ -46,7 +82,9 @@ int main(int argc, char *argv[])
 
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
-    librfb_init("librfb", 320, 240, send_callback);
+    librfb_init("librfb", w, h, send_callback);
+    librfb_set_frame_request_callback(frame_request_callback);
+    librfb_set_mouse_callback(mouse_callback);
     while(1) {
         sock = accept(lsock, (struct sockaddr*)&client_addr, &client_len);
         if(sock < 0)
