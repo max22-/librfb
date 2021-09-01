@@ -3,22 +3,18 @@
 
 /* https://datatracker.ietf.org/doc/html/rfc6143 */
 
-typedef enum {
-    INIT, DATA
-} event_type_t;
+typedef enum {LIBRFB_OK, LIBRFB_ERROR} librfb_result_t;
+typedef ssize_t (*send_callback_t)(const void*, size_t);
+typedef void (*keyboard_callback_t)(uint32_t);
+typedef void (*mouse_callback_t)(uint16_t x, uint16_t y, uint8_t button_mask);
 
-typedef struct {
-    event_type_t type;
-    void* data;
-    int len;
-} event_t;
+void librfb_reset();
+void librfb_init(const char* server_name, int w, int h, send_callback_t callback);
+void librfb_set_keyboard_callback(keyboard_callback_t);
+void librfb_set_mouse_callback(mouse_callback_t);
 
-// sme_ prefix means "state machine event"
+librfb_result_t librfb_handle_data(const void* data, size_t len);
 
-event_t sme_init();
-event_t sme_data(void* data, int len);
 
-void state_machine_init();
-int state_machine(int sock, event_t event);
 
 #endif

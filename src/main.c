@@ -8,6 +8,7 @@
 #include "librfb.h"
 
 const uint16_t port = 5900;
+int sock;
 
 void error(const char *msg)
 {
@@ -15,8 +16,14 @@ void error(const char *msg)
     exit(1);
 }
 
+ssize_t send_callback(const void *data, size_t count)
+{
+    return write(sock, data, count);
+}
+
 int main(int argc, char *argv[])
 {
+    char buffer[1024];
     printf("remote-framebuffer\n");
     int lsock = socket(AF_INET, SOCK_STREAM, 0);
     if(lsock < 0)
@@ -39,22 +46,19 @@ int main(int argc, char *argv[])
 
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
+    librfb_init("librfb", 320, 240, send_callback);
     while(1) {
-        int sock = accept(lsock, (struct sockaddr*)&client_addr, &client_len);
+        sock = accept(lsock, (struct sockaddr*)&client_addr, &client_len);
         if(sock < 0)
             error("Accept error");
         printf("Client connected\n");
-        if(!state_machine(sock, sme_init())) {
-            close(sock);
-            continue;
-        }
-        char buffer[1024];
+        librfb_reset();
         while(1) {
             memset(buffer, 0, sizeof(buffer));
             int bytes = read(sock, buffer, sizeof(buffer));
             if(bytes <= 0)
                 break;
-            state_machine(sock, sme_data(buffer, bytes));
+            librfb_handle_data(buffer, bytes);
         }
         close(sock);
         printf("socket closed\n");
