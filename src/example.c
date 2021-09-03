@@ -60,7 +60,7 @@ static void send_frame()
 int main(int argc, char *argv[])
 {
     char buffer[1024];
-    printf("remote-framebuffer\n");
+    printf("librfb example\n");
     int lsock = socket(AF_INET, SOCK_STREAM, 0);
     if(lsock < 0)
         error("Error creating socket");
